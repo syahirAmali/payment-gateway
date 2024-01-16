@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    <head> </head>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document
+                .getElementById("orderForm")
+                .addEventListener("submit", function (event) {
+                    event.preventDefault();
+                });
+        });
+
+        async function processOrder() {
+            var price = parseFloat(document.getElementById("price").value);
+
+            var formData = {
+                firstName: document.getElementById("firstName").value,
+                lastName: document.getElementById("lastName").value,
+                amount: isNaN(price) ? null : price,
+                currency: document.getElementById("currency").value,
+                creditCardHolderName: document.getElementById(
+                    "creditCardHolderName"
+                ).value,
+                card: {
+                    number: document.getElementById("creditCardNumber").value,
+                    expirationMonth:
+                        document.getElementById("expirationMonth").value,
+                    expirationYear:
+                        document.getElementById("expirationYear").value,
+                    cvv: document.getElementById("cvv").value,
+                },
+            };
+
+            // Convert the form data to a JSON string
+            var formDataJSON = JSON.stringify(formData);
+
+            // Log the JSON string to the console
+            console.log(formDataJSON);
+
+            var response = await fetch("http://localhost:3000/payments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: formDataJSON,
+            });
+            const data = await response.json();
+
+            const type = data.paymentType;
+
+            if (type === "PAYPAL") {
+                window.open(data.approveLink.href, "_blank");
+            } else if (type === "BRAINTREE") {
+                window.alert("Braintree payment: " + data.status);
+            }
+        }
+    </script>
+    <body>
+        <form id="orderForm">
+            <label>Order </label><br /><br />
+            <label>First name: </label><br />
+            <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value="test0"
+            /><br />
+            <label>Last name: </label><br />
+            <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value="xxx"
+            /><br />
+            <label>Price: </label><br />
+            <input type="number" id="price" name="price" value="100" /><br />
+            <label>Currency: </label><br />
+            <input
+                type="text"
+                id="currency"
+                name="currency"
+                value="USD"
+            /><br />
+            <br /><br /><br />
+            <label>Payment </label><br /><br />
+            <label>Credit card holder name: </label><br />
+            <input
+                type="text"
+                id="creditCardHolderName"
+                name="creditCardHolderName"
+                value="test xxx"
+            /><br />
+
+            <label>Credit card number: </label><br />
+            <input
+                type="text"
+                id="creditCardNumber"
+                name="creditCardNumber"
+                value="4111111111111111"
+            /><br />
+
+            <label>Credit card expiration:</label><br />
+            <label>Month: </label><br />
+            <input
+                type="text"
+                id="expirationMonth"
+                name="creditCardExpiration"
+                value="12"
+            /><br />
+            <label>Year: </label><br />
+            <input
+                type="text"
+                id="expirationYear"
+                name="creditCardExpiration"
+                value="2022"
+            /><br />
+            <label>CVV: </label><br />
+            <input type="text" id="cvv" name="cvv" value="123" /><br />
+
+            <button type="submit" onclick="processOrder()">Process</button>
+        </form>
+    </body>
+</html>
